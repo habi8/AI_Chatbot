@@ -12,6 +12,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        mono: 'var(--font-mono)',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

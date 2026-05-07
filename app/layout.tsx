@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({ 
+  subsets: ["latin"],
+  variable: '--font-mono'
+});
 
 export const metadata: Metadata = {
   title: 'v0 App',
@@ -35,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">
+    <html lang="en" className={jetbrainsMono.variable}>
+      <body className="font-mono antialiased bg-black">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
