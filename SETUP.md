@@ -29,6 +29,8 @@ Your environment variables are already configured in the integration. The follow
 - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key for admin operations
+- `OLLAMA_BASE_URL` - Optional, defaults to `http://localhost:11434`
+- `OLLAMA_MODEL` - Optional, defaults to `deepseek-r1:1.5b`
 
 These are automatically set from your Supabase integration.
 
@@ -40,14 +42,14 @@ Make sure Ollama is running:
 ollama serve
 ```
 
-Pull the llama2 model if you haven't already:
+Pull the default model if you haven't already:
 
 ```bash
-ollama pull llama2
+ollama pull deepseek-r1:1.5b
 ```
 
 The API expects:
-- Model: `llama2`
+- Model: `deepseek-r1:1.5b`
 - Endpoint: `http://localhost:11434/api/chat`
 
 ## 4. Features
@@ -100,7 +102,7 @@ The API expects:
 
 **Chat not working:**
 - Ensure Ollama is running on `localhost:11434`
-- Check that llama2 model is pulled
+- Check that the configured `OLLAMA_MODEL` is pulled
 - Verify Supabase connection
 
 **Auth issues:**
@@ -110,6 +112,7 @@ The API expects:
 **Database errors:**
 - Ensure all SQL from setup script executed successfully
 - Verify RLS policies are properly set
+- If you see `Could not find the table 'public.chat_sessions' in the schema cache`, re-run the latest `scripts/setup-db.sql` in the Supabase SQL Editor. The script creates `public.chat_sessions` and sends a PostgREST schema-cache reload notification.
 
 ## 8. Development
 

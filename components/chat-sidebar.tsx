@@ -19,16 +19,25 @@ interface ChatSidebarProps {
 export default function ChatSidebar({ userId }: ChatSidebarProps) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const router = useRouter();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const supabase = useMemo(() => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
     return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  }, [])
+      supabaseUrl,
+      supabaseAnonKey
+    );
+  }, [supabaseUrl, supabaseAnonKey]);
 
   useEffect(() => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchSessions = async () => {
       try {
         const { data, error } = await supabase
@@ -37,10 +46,17 @@ export default function ChatSidebar({ userId }: ChatSidebarProps) {
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          setLoadError(error.message);
+          setSessions([]);
+          return;
+        }
+
+        setLoadError(null);
         setSessions(data || []);
       } catch (error) {
-        console.error("[v0] Failed to fetch sessions:", error);
+        setLoadError("Failed to fetch sessions");
+        setSessions([]);
       } finally {
         setIsLoading(false);
       }
@@ -50,6 +66,8 @@ export default function ChatSidebar({ userId }: ChatSidebarProps) {
   }, [userId, supabase]);
 
   const handleNewChat = async () => {
+    if (!supabase) return;
+
     try {
       const { data, error } = await supabase
         .from("chat_sessions")
@@ -76,6 +94,8 @@ export default function ChatSidebar({ userId }: ChatSidebarProps) {
   };
 
   const handleLogout = async () => {
+    if (!supabase) return;
+
     try {
       await supabase.auth.signOut();
       router.push("/");
@@ -106,6 +126,8 @@ export default function ChatSidebar({ userId }: ChatSidebarProps) {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-4 text-gray-400 text-sm">Loading...</div>
+        ) : loadError ? (
+          <div className="p-4 text-red-400 text-sm">{loadError}</div>
         ) : sessions.length === 0 ? (
           <div className="p-4 text-gray-400 text-sm">No chats yet</div>
         ) : (

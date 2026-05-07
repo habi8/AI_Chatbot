@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Send, Copy, Check } from "lucide-react";
@@ -24,34 +24,41 @@ export default function ChatArea({ userId }: ChatAreaProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const supabase = useMemo(() => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
     return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  }, [])
+      supabaseUrl,
+      supabaseAnonKey
+    );
+  }, [supabaseUrl, supabaseAnonKey]);
+
+  const fetchMessages = useCallback(async () => {
+    if (!sessionId || !supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error("[v0] Failed to fetch messages:", error);
+      setSendError("Could not load messages for this chat.");
+    }
+  }, [sessionId, supabase]);
 
   // Fetch messages
   useEffect(() => {
-    if (!sessionId) return;
-
-    const fetchMessages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("messages")
-          .select("*")
-          .eq("session_id", sessionId)
-          .order("created_at", { ascending: true });
-
-        if (error) throw error;
-        setMessages(data || []);
-      } catch (error) {
-        console.error("[v0] Failed to fetch messages:", error);
-      }
-    };
+    if (!sessionId || !supabase) return;
 
     fetchMessages();
 
@@ -75,7 +82,7 @@ export default function ChatArea({ userId }: ChatAreaProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [sessionId, supabase]);
+  }, [fetchMessages, sessionId, supabase]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -85,11 +92,20 @@ export default function ChatArea({ userId }: ChatAreaProps) {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inputValue.trim() || !sessionId) return;
+    if (!inputValue.trim() || !sessionId || !supabase) return;
 
     const userMessage = inputValue;
     setInputValue("");
     setIsLoading(true);
+    setSendError(null);
+
+    const optimisticUserMessage: Message = {
+      id: `pending-${Date.now()}`,
+      role: "user",
+      content: userMessage,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((currentMessages) => [...currentMessages, optimisticUserMessage]);
 
     try {
       // Update session title if it's the first message
@@ -108,18 +124,55 @@ export default function ChatArea({ userId }: ChatAreaProps) {
       }
 
       // Send message to API
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("No active session");
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           message: userMessage,
           session_id: sessionId,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
+      const responseData = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(responseData?.error || "Failed to send message");
+      }
+
+      if (responseData?.message) {
+        const optimisticAssistantMessage: Message = {
+          id: `pending-assistant-${Date.now()}`,
+          role: "assistant",
+          content: responseData.message,
+          created_at: new Date().toISOString(),
+        };
+        setMessages((currentMessages) => [
+          ...currentMessages.filter((message) => message.id !== optimisticUserMessage.id),
+          optimisticUserMessage,
+          optimisticAssistantMessage,
+        ]);
+      }
+
+      await fetchMessages();
     } catch (error) {
       console.error("[v0] Failed to send message:", error);
+      setMessages((currentMessages) =>
+        currentMessages.filter((message) => message.id !== optimisticUserMessage.id)
+      );
+      setSendError(
+        error instanceof Error ? error.message : "Failed to send message"
+      );
       setInputValue(userMessage);
     } finally {
       setIsLoading(false);
@@ -148,7 +201,7 @@ export default function ChatArea({ userId }: ChatAreaProps) {
     <div className="flex-1 flex flex-col bg-black">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.length === 0 ? (
+        {messages.length === 0 && !isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500">Start a conversation</p>
           </div>
@@ -210,6 +263,11 @@ export default function ChatArea({ userId }: ChatAreaProps) {
 
       {/* Input Area */}
       <div className="border-t border-gray-700 bg-black p-4">
+        {sendError && (
+          <div className="mb-3 rounded border border-red-900/70 bg-red-950/40 px-3 py-2 text-sm text-red-200">
+            {sendError}
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             type="text"

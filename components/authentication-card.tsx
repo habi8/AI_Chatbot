@@ -20,14 +20,17 @@ export default function AuthenticationCard() {
     confirmPassword: "",
   })
   const router = useRouter()
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   const supabase = useMemo(() => {
     if (typeof window === "undefined") return null
+    if (!supabaseUrl || !supabaseAnonKey) return null
     return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      supabaseUrl,
+      supabaseAnonKey
     )
-  }, [])
+  }, [supabaseUrl, supabaseAnonKey])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -41,7 +44,7 @@ export default function AuthenticationCard() {
 
     try {
       if (!supabase) {
-        throw new Error("Supabase not initialized")
+        throw new Error("Supabase is not configured")
       }
 
       if (mode === "login") {
