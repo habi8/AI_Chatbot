@@ -160,18 +160,18 @@ export default function AuthenticationCard() {
             <Button
               type="submit"
               disabled={isLoading || (mode === "signup" && formData.password !== formData.confirmPassword)}
-              className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 h-11 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm font-mono disabled:opacity-50"
+              className="w-full bg-white/15 hover:bg-white/25 text-white border border-white/30 hover:border-white/50 h-12 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm font-mono disabled:opacity-50 tracking-wide text-sm"
             >
-              {isLoading ? (mode === "login" ? "Signing in..." : "Creating account...") : (mode === "login" ? "Sign In" : "Sign Up")}
+              {isLoading ? (mode === "login" ? "SIGNING IN..." : "CREATING ACCOUNT...") : (mode === "login" ? "LOGIN" : "SIGN UP")}
             </Button>
           </form>
 
-          <div className="text-center">
+          <div className="text-center pt-2">
             <button
               onClick={() => switchMode(mode === "login" ? "signup" : "login")}
-              className="text-white/70 hover:text-white text-sm transition-colors font-mono"
+              className="text-white/60 hover:text-white/90 text-xs transition-colors font-mono tracking-wider"
             >
-              {mode === "login" ? "Need an account? Sign up" : "Already have an account? Sign in"}
+              {mode === "login" ? "Don&apos;t have an account? SIGN UP" : "Already have an account? LOGIN"}
             </button>
           </div>
         </div>
