@@ -16,9 +16,10 @@ interface Message {
 
 interface ChatAreaProps {
   userId: string;
+  shellMessage?: string | null;
 }
 
-export default function ChatArea({ userId }: ChatAreaProps) {
+export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const [messages, setMessages] = useState<Message[]>([]);
@@ -191,22 +192,26 @@ export default function ChatArea({ userId }: ChatAreaProps) {
 
   if (!sessionId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-black">
-        <p className="text-gray-400">Select a chat to start</p>
+      <div className="flex flex-1 items-center justify-center bg-black">
+        <p className="text-gray-400">{shellMessage || "Preparing a new chat..."}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-black">
+    <div className="animate-fade-up relative flex min-w-0 flex-1 flex-col bg-black">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(75,85,99,0.18),transparent_34rem)]" />
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="relative flex-1 overflow-y-auto px-4 pb-36 pt-8">
         {messages.length === 0 && !isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500">Start a conversation</p>
+          <div className="mx-auto flex h-full max-w-3xl items-center justify-center">
+            <div className="px-8 py-6 text-center">
+              <p className="font-mono text-lg text-gray-200">Start a conversation</p>
+              <p className="mt-2 text-sm text-gray-500">A new chat is ready.</p>
+            </div>
           </div>
         ) : (
-          <>
+          <div className="mx-auto flex max-w-3xl flex-col gap-5">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -215,10 +220,10 @@ export default function ChatArea({ userId }: ChatAreaProps) {
                 }`}
               >
                 <div
-                  className={`max-w-xl px-4 py-3 rounded-lg ${
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-[0_12px_34px_rgba(0,0,0,0.24)] ${
                     msg.role === "user"
-                      ? "bg-gray-700 text-white"
-                      : "bg-gray-800 text-gray-100"
+                      ? "bg-gray-700/90 text-white"
+                      : "border border-gray-700/70 bg-gray-900/70 text-gray-100 backdrop-blur-xl"
                   }`}
                 >
                   <p className="text-sm break-words whitespace-pre-wrap">
@@ -247,7 +252,7 @@ export default function ChatArea({ userId }: ChatAreaProps) {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-800 text-gray-100 px-4 py-3 rounded-lg">
+                <div className="rounded-2xl border border-gray-700/70 bg-gray-900/70 px-4 py-3 text-gray-100 shadow-[0_12px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
@@ -257,34 +262,40 @@ export default function ChatArea({ userId }: ChatAreaProps) {
               </div>
             )}
             <div ref={messagesEndRef} />
-          </>
+          </div>
         )}
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-700 bg-black p-4">
-        {sendError && (
-          <div className="mb-3 rounded border border-red-900/70 bg-red-950/40 px-3 py-2 text-sm text-red-200">
-            {sendError}
-          </div>
-        )}
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type a message..."
-            disabled={isLoading}
-            className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-          />
-          <Button
-            type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            className="bg-gray-700 hover:bg-gray-600 text-white disabled:opacity-50"
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-6 pt-10">
+        <div className="mx-auto max-w-3xl">
+          {sendError && (
+            <div className="pointer-events-auto mb-3 rounded-lg border border-red-900/70 bg-red-950/70 px-3 py-2 text-sm text-red-200 shadow-lg backdrop-blur-xl">
+              {sendError}
+            </div>
+          )}
+          <form
+            onSubmit={handleSendMessage}
+            className="pointer-events-auto flex gap-2 rounded-2xl border border-gray-500/45 bg-gray-900/75 p-2 shadow-[0_0_24px_rgba(156,163,175,0.12),0_18px_70px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-xl transition-[border-color,box-shadow] duration-300 hover:border-gray-400/60 hover:shadow-[0_0_34px_rgba(156,163,175,0.18),0_18px_70px_rgba(0,0,0,0.45)] focus-within:border-gray-300/70 focus-within:shadow-[0_0_44px_rgba(156,163,175,0.24),0_18px_70px_rgba(0,0,0,0.45)]"
           >
-            <Send className="w-4 h-4" />
-          </Button>
-        </form>
+            <Input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Message ChatBot..."
+              disabled={isLoading}
+              className="h-12 flex-1 border-0 bg-transparent text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            <Button
+              type="submit"
+              disabled={isLoading || !inputValue.trim()}
+              className="h-12 w-12 rounded-xl bg-gray-700 p-0 text-white hover:bg-gray-600 disabled:opacity-50"
+              title="Send"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

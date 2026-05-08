@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
+import { Lock, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Mail, Lock } from "lucide-react"
 
 type AuthMode = "login" | "signup"
 
@@ -26,10 +26,7 @@ export default function AuthenticationCard() {
   const supabase = useMemo(() => {
     if (typeof window === "undefined") return null
     if (!supabaseUrl || !supabaseAnonKey) return null
-    return createClient(
-      supabaseUrl,
-      supabaseAnonKey
-    )
+    return createClient(supabaseUrl, supabaseAnonKey)
   }, [supabaseUrl, supabaseAnonKey])
 
   const handleInputChange = (field: string, value: string) => {
@@ -52,6 +49,7 @@ export default function AuthenticationCard() {
           email: formData.email,
           password: formData.password,
         })
+
         if (signInError) {
           setError(signInError.message)
         } else {
@@ -62,13 +60,14 @@ export default function AuthenticationCard() {
           email: formData.email,
           password: formData.password,
         })
+
         if (signUpError) {
           setError(signUpError.message)
         } else {
           setError("Check your email to confirm your account")
         }
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -82,31 +81,37 @@ export default function AuthenticationCard() {
   }
 
   return (
-    <div className="w-[450px] max-w-full">
-      <div className="relative">
-        {/* Glass morphism card */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl" />
+    <div className="w-[420px] max-w-full animate-fade-up">
+      <div className="rounded-lg border border-gray-500/45 bg-gray-900/55 shadow-[0_0_22px_rgba(156,163,175,0.12),0_24px_70px_rgba(0,0,0,0.45)] ring-1 ring-white/10 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 hover:border-gray-400/70 hover:shadow-[0_0_56px_rgba(156,163,175,0.32),0_0_18px_rgba(229,231,235,0.16),0_24px_70px_rgba(0,0,0,0.45)]">
+        <div className="space-y-6 p-8">
+          <div className="text-left">
+            <p className="font-mono text-sm font-semibold tracking-wide text-gray-300">
+              1822_Bot
+            </p>
+          </div>
 
-        {/* Content */}
-        <div className="relative p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-white font-mono">{mode === "login" ? "Welcome Back" : "Create Account"}</h1>
-            <p className="text-white/70 font-mono text-sm">{mode === "login" ? "Sign in to your account" : "Join us today"}</p>
+          <div className="space-y-2 text-center">
+            <h1 className="font-mono text-2xl font-semibold text-white">
+              {mode === "login" ? "Welcome Back" : "Create Account"}
+            </h1>
+            <p className="font-mono text-sm text-gray-400">
+              {mode === "login" ? "Sign in to your account" : "Join us today"}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/90 font-mono text-sm">
+              <Label htmlFor="email" className="font-mono text-sm text-gray-200">
                 Email
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 font-mono"
+                  className="border-gray-700/80 bg-gray-800/80 pl-10 font-mono text-white placeholder:text-gray-500 focus:border-gray-500 focus:ring-gray-500"
                   placeholder="your@email.com"
                   required
                 />
@@ -114,18 +119,18 @@ export default function AuthenticationCard() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/90 font-mono text-sm">
+              <Label htmlFor="password" className="font-mono text-sm text-gray-200">
                 Password
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 font-mono"
-                  placeholder="••••••••"
+                  className="border-gray-700/80 bg-gray-800/80 pl-10 font-mono text-white placeholder:text-gray-500 focus:border-gray-500 focus:ring-gray-500"
+                  placeholder="Password"
                   required
                 />
               </div>
@@ -133,48 +138,54 @@ export default function AuthenticationCard() {
 
             {mode === "signup" && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white/90 font-mono text-sm">
+                <Label htmlFor="confirmPassword" className="font-mono text-sm text-gray-200">
                   Confirm Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 font-mono"
-                    placeholder="••••••••"
+                    className="border-gray-700/80 bg-gray-800/80 pl-10 font-mono text-white placeholder:text-gray-500 focus:border-gray-500 focus:ring-gray-500"
+                    placeholder="Confirm password"
                     required
                   />
                 </div>
                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="text-xs text-red-400 font-mono">Passwords do not match</p>
+                  <p className="font-mono text-xs text-red-400">Passwords do not match</p>
                 )}
               </div>
             )}
 
             {error && (
-              <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                <p className="text-red-300 text-sm font-mono">{error}</p>
+              <div className="rounded-lg border border-red-900/70 bg-red-950/40 p-3">
+                <p className="font-mono text-sm text-red-200">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               disabled={isLoading || (mode === "signup" && formData.password !== formData.confirmPassword)}
-              className="w-full bg-white/15 hover:bg-white/25 text-white border border-white/30 hover:border-white/50 h-12 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm font-mono disabled:opacity-50 tracking-wide text-sm"
+              className="h-12 w-full rounded-lg border border-gray-600 bg-gray-700 font-mono text-sm font-medium tracking-wide text-white transition-colors hover:border-gray-500 hover:bg-gray-600 disabled:opacity-50"
             >
-              {isLoading ? (mode === "login" ? "SIGNING IN..." : "CREATING ACCOUNT...") : (mode === "login" ? "LOGIN" : "SIGN UP")}
+              {isLoading
+                ? mode === "login"
+                  ? "SIGNING IN..."
+                  : "CREATING ACCOUNT..."
+                : mode === "login"
+                  ? "LOGIN"
+                  : "SIGN UP"}
             </Button>
           </form>
 
-          <div className="text-center pt-2">
+          <div className="pt-2 text-center">
             <button
               onClick={() => switchMode(mode === "login" ? "signup" : "login")}
-              className="text-white/60 hover:text-white/90 text-xs transition-colors font-mono tracking-wider"
+              className="font-mono text-xs tracking-wider text-gray-400 transition-colors hover:text-white"
             >
-              {mode === "login" ? "Don&apos;t have an account? SIGN UP" : "Already have an account? LOGIN"}
+              {mode === "login" ? "Don't have an account? SIGN UP" : "Already have an account? LOGIN"}
             </button>
           </div>
         </div>
