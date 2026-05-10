@@ -10,6 +10,16 @@ import { Label } from "@/components/ui/label"
 
 type AuthMode = "login" | "signup"
 
+const formatAuthMessage = (message: string) => {
+  const normalizedMessage = message.toLowerCase()
+
+  if (normalizedMessage.includes("email rate limit") || normalizedMessage.includes("rate limit")) {
+    return "Too many signup attempts triggered confirmation emails. Supabase is temporarily limiting email sends for this project. Wait and try again later."
+  }
+
+  return message
+}
+
 export default function AuthenticationCard() {
   const [mode, setMode] = useState<AuthMode>("login")
   const [isLoading, setIsLoading] = useState(false)
@@ -51,7 +61,7 @@ export default function AuthenticationCard() {
         })
 
         if (signInError) {
-          setError(signInError.message)
+          setError(formatAuthMessage(signInError.message))
         } else {
           router.push("/chat")
         }
@@ -62,7 +72,7 @@ export default function AuthenticationCard() {
         })
 
         if (signUpError) {
-          setError(signUpError.message)
+          setError(formatAuthMessage(signUpError.message))
         } else {
           setError("Check your email to confirm your account")
         }
