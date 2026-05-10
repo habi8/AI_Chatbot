@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Send, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,12 +15,15 @@ interface Message {
 
 interface ChatAreaProps {
   userId: string;
+  sessionId?: string;
   shellMessage?: string | null;
 }
 
-export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
-  const params = useParams();
-  const sessionId = params.sessionId as string;
+export default function ChatArea({
+  userId,
+  sessionId,
+  shellMessage,
+}: ChatAreaProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +35,7 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
 
   const supabase = useMemo(() => {
     if (!supabaseUrl || !supabaseAnonKey) return null;
-    return createClient(
-      supabaseUrl,
-      supabaseAnonKey
-    );
+    return createClient(supabaseUrl, supabaseAnonKey);
   }, [supabaseUrl, supabaseAnonKey]);
 
   const fetchMessages = useCallback(async () => {
@@ -76,7 +75,7 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
         },
         () => {
           fetchMessages();
-        }
+        },
       )
       .subscribe();
 
@@ -106,7 +105,10 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
       content: userMessage,
       created_at: new Date().toISOString(),
     };
-    setMessages((currentMessages) => [...currentMessages, optimisticUserMessage]);
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      optimisticUserMessage,
+    ]);
 
     try {
       // Update session title if it's the first message
@@ -159,7 +161,9 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
           created_at: new Date().toISOString(),
         };
         setMessages((currentMessages) => [
-          ...currentMessages.filter((message) => message.id !== optimisticUserMessage.id),
+          ...currentMessages.filter(
+            (message) => message.id !== optimisticUserMessage.id,
+          ),
           optimisticUserMessage,
           optimisticAssistantMessage,
         ]);
@@ -169,10 +173,12 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
     } catch (error) {
       console.error("[v0] Failed to send message:", error);
       setMessages((currentMessages) =>
-        currentMessages.filter((message) => message.id !== optimisticUserMessage.id)
+        currentMessages.filter(
+          (message) => message.id !== optimisticUserMessage.id,
+        ),
       );
       setSendError(
-        error instanceof Error ? error.message : "Failed to send message"
+        error instanceof Error ? error.message : "Failed to send message",
       );
       setInputValue(userMessage);
     } finally {
@@ -193,7 +199,9 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
   if (!sessionId) {
     return (
       <div className="flex flex-1 items-center justify-center bg-black">
-        <p className="text-gray-400">{shellMessage || "Preparing a new chat..."}</p>
+        <p className="text-gray-400">
+          {shellMessage || "Preparing a new chat..."}
+        </p>
       </div>
     );
   }
@@ -206,7 +214,9 @@ export default function ChatArea({ userId, shellMessage }: ChatAreaProps) {
         {messages.length === 0 && !isLoading ? (
           <div className="mx-auto flex h-full max-w-3xl items-center justify-center">
             <div className="px-8 py-6 text-center">
-              <p className="font-mono text-lg text-gray-200">Start a conversation</p>
+              <p className="font-mono text-lg text-gray-200">
+                Start a conversation
+              </p>
               <p className="mt-2 text-sm text-gray-500">A new chat is ready.</p>
             </div>
           </div>

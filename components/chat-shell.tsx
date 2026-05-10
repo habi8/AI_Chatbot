@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import ChatSidebar from "@/components/chat-sidebar";
 import ChatArea from "@/components/chat-area";
 
@@ -14,6 +14,8 @@ export default function ChatShell() {
   const hasCreatedInitialChat = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
+  const sessionId = params?.sessionId as string | undefined;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -25,7 +27,9 @@ export default function ChatShell() {
   useEffect(() => {
     const loadSession = async () => {
       if (!supabase) {
-        setShellMessage("Supabase is not configured. Check your environment variables.");
+        setShellMessage(
+          "Supabase is not configured. Check your environment variables.",
+        );
         setIsLoading(false);
         return;
       }
@@ -50,7 +54,12 @@ export default function ChatShell() {
 
   useEffect(() => {
     const createInitialChat = async () => {
-      if (!session || !supabase || pathname !== "/chat" || hasCreatedInitialChat.current) {
+      if (
+        !session ||
+        !supabase ||
+        pathname !== "/chat" ||
+        hasCreatedInitialChat.current
+      ) {
         return;
       }
 
@@ -67,7 +76,10 @@ export default function ChatShell() {
         .maybeSingle();
 
       if (existingError) {
-        console.error("[v0] Failed to find existing empty chat:", existingError);
+        console.error(
+          "[v0] Failed to find existing empty chat:",
+          existingError,
+        );
       }
 
       if (existingEmptyChat) {
@@ -122,7 +134,12 @@ export default function ChatShell() {
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((current) => !current)}
       />
-      <ChatArea userId={session.user.id} shellMessage={shellMessage} />
+      <ChatArea
+        key={sessionId}
+        userId={session.user.id}
+        sessionId={sessionId}
+        shellMessage={shellMessage}
+      />
     </div>
   );
 }

@@ -18,7 +18,11 @@ interface ChatSidebarProps {
   onToggle: () => void;
 }
 
-export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarProps) {
+export default function ChatSidebar({
+  userId,
+  isOpen,
+  onToggle,
+}: ChatSidebarProps) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -30,10 +34,7 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
 
   const supabase = useMemo(() => {
     if (!supabaseUrl || !supabaseAnonKey) return null;
-    return createClient(
-      supabaseUrl,
-      supabaseAnonKey
-    );
+    return createClient(supabaseUrl, supabaseAnonKey);
   }, [supabaseUrl, supabaseAnonKey]);
 
   useEffect(() => {
@@ -67,13 +68,53 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
     };
 
     fetchSessions();
+
+    // Subscribe to real-time updates for chat_sessions
+    const channel = supabase
+      .channel(`chat_sessions:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "chat_sessions",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setSessions((currentSessions) => [
+              payload.new as ChatSession,
+              ...currentSessions,
+            ]);
+          } else if (payload.eventType === "UPDATE") {
+            setSessions((currentSessions) =>
+              currentSessions.map((session) =>
+                session.id === (payload.new as ChatSession).id
+                  ? (payload.new as ChatSession)
+                  : session,
+              ),
+            );
+          } else if (payload.eventType === "DELETE") {
+            setSessions((currentSessions) =>
+              currentSessions.filter(
+                (session) => session.id !== (payload.old as ChatSession).id,
+              ),
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId, supabase]);
 
   const handleNewChat = async () => {
     if (!supabase) return;
 
     const existingEmptyChat = sessions.find(
-      (session) => session.title === "New Chat"
+      (session) => session.title === "New Chat",
     );
 
     if (existingEmptyChat) {
@@ -97,7 +138,7 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
         setSessions((currentSessions) =>
           currentSessions.some((session) => session.id === existingData.id)
             ? currentSessions
-            : [existingData, ...currentSessions]
+            : [existingData, ...currentSessions],
         );
         router.push(`/chat/${existingData.id}`);
         return;
@@ -133,7 +174,7 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
 
     const previousSessions = sessions;
     setSessions((currentSessions) =>
-      currentSessions.filter((session) => session.id !== sessionId)
+      currentSessions.filter((session) => session.id !== sessionId),
     );
 
     try {
@@ -174,14 +215,20 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
     >
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-gray-700 p-3">
-        {isOpen && <h1 className="text-lg font-semibold text-white">1822_Bot</h1>}
+        {isOpen && (
+          <h1 className="text-lg font-semibold text-white">1822_Bot</h1>
+        )}
         <Button
           type="button"
           onClick={onToggle}
           className="h-10 w-10 bg-gray-800 p-0 text-white hover:bg-gray-700"
           title={isOpen ? "Collapse sidebar" : "Open sidebar"}
         >
-          {isOpen ? <PanelLeftClose className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          {isOpen ? (
+            <PanelLeftClose className="h-4 w-4" />
+          ) : (
+            <Menu className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
@@ -190,7 +237,9 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
         <Button
           onClick={handleNewChat}
           className={`bg-gray-700 text-white hover:bg-gray-600 ${
-            isOpen ? "flex w-full items-center justify-center gap-2" : "h-10 w-10 p-0"
+            isOpen
+              ? "flex w-full items-center justify-center gap-2"
+              : "h-10 w-10 p-0"
           }`}
           title="New chat"
         >
@@ -243,7 +292,9 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
                     }
                   >
                     {pendingDeleteId === session.id ? (
-                      <span className="text-xs font-semibold text-red-300">OK</span>
+                      <span className="text-xs font-semibold text-red-300">
+                        OK
+                      </span>
                     ) : (
                       <Trash2 className="h-4 w-4" />
                     )}
@@ -265,7 +316,9 @@ export default function ChatSidebar({ userId, isOpen, onToggle }: ChatSidebarPro
         <Button
           onClick={handleLogout}
           className={`bg-gray-700 text-white hover:bg-gray-600 ${
-            isOpen ? "flex w-full items-center justify-center gap-2" : "h-10 w-10 p-0"
+            isOpen
+              ? "flex w-full items-center justify-center gap-2"
+              : "h-10 w-10 p-0"
           }`}
           title="Logout"
         >
