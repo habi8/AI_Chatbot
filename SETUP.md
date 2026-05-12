@@ -30,7 +30,7 @@ Your environment variables are already configured in the integration. The follow
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key for admin operations
 - `OLLAMA_BASE_URL` - Optional, defaults to `http://localhost:11434`
-- `OLLAMA_MODEL` - Optional, defaults to `deepseek-r1:1.5b`
+- `OLLAMA_MODEL` - Custom, defaults to `deepseek-r1:1.5b`
 
 These are automatically set from your Supabase integration.
 
@@ -46,6 +46,8 @@ Pull the default model if you haven't already:
 
 ```bash
 ollama pull deepseek-r1:1.5b
+or 
+ollama pull qwen2.5:7b
 ```
 
 The API expects:
@@ -56,6 +58,7 @@ The API expects:
 
 ### Authentication Page (/)
 - Email + Password signup/login
+- Email verification mandatory by default supabase config
 - Inline error messages
 - Redirects to /chat on successful auth
 

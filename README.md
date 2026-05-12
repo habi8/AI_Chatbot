@@ -1,6 +1,6 @@
 # AI Chatbot
 
-A web-based AI chatbot with user authentication and persistent chat history, powered by a locally-running Qwen2.5 model.
+A web-based AI chatbot with user authentication and persistent chat history, powered by a locally-running Qwen2.5 7billion parameter model.
 
 **Built with:** Next.js · Supabase · Tailwind CSS · Ollama (Qwen2.5:7b)
 
@@ -24,7 +24,9 @@ A web-based AI chatbot with user authentication and persistent chat history, pow
 ```bash
 git clone https://github.com/habi8/AI_Chatbot.git
 cd AI_Chatbot
-npm install
+npm install 
+or 
+yarn install 
 ```
 
 **2. Add environment variables** — create `.env.local`:
@@ -43,6 +45,8 @@ ollama serve
 **4. Start the app**
 ```bash
 npm run dev
+or
+yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
