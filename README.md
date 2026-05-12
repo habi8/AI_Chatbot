@@ -1,35 +1,48 @@
-# AI_Chatbot
+# AI Chatbot
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+A web-based AI chatbot with user authentication and persistent chat history, powered by a locally-running Qwen2.5 model.
 
-## Built with v0
+**Built with:** Next.js · Supabase · Tailwind CSS · Ollama (Qwen2.5:7b)
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+---
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_F5CYA4K2qwPfhtkO1Zp5Pd8qi7pN)
+## Features
 
-## Getting Started
+- User sign up / login / logout
+- Chat with DeepSeek AI model
+- Multiple chat sessions
+- Persistent chat history per user
+- Minimal monochrome UI
 
-First, run the development server:
+---
 
+## Run Locally
+
+**Prerequisites:** Node.js v18+, Ollama installed, Supabase project created
+
+**1. Clone and install**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+git clone https://github.com/habi8/AI_Chatbot.git
+cd AI_Chatbot
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**2. Add environment variables** — create `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+OLLAMA_BASE_URL=http://localhost:11434
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**3. Pull the model and start Ollama**
+```bash
+ollama pull qwen2.5:7b
+ollama serve
+```
 
-## Learn More
+**4. Start the app**
+```bash
+npm run dev
+```
 
-To learn more, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
-
-<a href="https://v0.app/chat/api/kiro/clone/habi8/AI_Chatbot" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+Open [http://localhost:3000](http://localhost:3000)
