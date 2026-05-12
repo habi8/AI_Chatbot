@@ -9,7 +9,7 @@ A web-based AI chatbot with user authentication and persistent chat history, pow
 ## Features
 
 - User sign up / login / logout
-- Chat with DeepSeek AI model
+- Chat with Qwen 2.5:7b AI model
 - Multiple chat sessions
 - Persistent chat history per user
 - Minimal monochrome UI
